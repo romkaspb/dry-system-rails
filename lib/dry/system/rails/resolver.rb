@@ -2,12 +2,15 @@
 
 module Dry
   module System
-    module Hanami
+    module Rails
       module Resolver
-        PROJECT_NAME = ::Hanami::Environment.new.project_name
-        LIB_FOLDER = "lib/".freeze
-        CORE_FOLDER = "#{PROJECT_NAME}/".freeze
+        CORE_FOLDER = "app/".freeze
         DEFAULT_RESOLVER = ->(k) { k.new }
+
+        def lib_folder!(folder)
+          @lib_folder = folder
+          @lib_folder = "#{@lib_folder}/" unless @lib_folder.end_with?('/')
+        end
 
         def register_folder!(folder, resolver: DEFAULT_RESOLVER)
           all_files_in_folder(folder).each do |file|
@@ -21,47 +24,38 @@ module Dry
 
         private
 
+        def lib_folder
+          @lib_folder
+        end
+
         def find_file(file)
-          Dir.chdir(::Hanami.root) do
-            Dir.glob("lib/#{file}.rb")
+          Dir.chdir(::Rails.root) do
+            Dir.glob("#{CORE_FOLDER}#{lib_folder}#{file}.rb")
                .map! { |file_name| file_name.sub('.rb', '').to_s }.first
           end
         end
 
         def all_files_in_folder(folder)
-          Dir.chdir(::Hanami.root) do
-            Dir.glob("lib/#{folder}/**/*.rb")
+          Dir.chdir(::Rails.root) do
+            Dir.glob("#{CORE_FOLDER}#{lib_folder}#{folder}/**/*.rb")
                .map! { |file_name| file_name.sub('.rb', '').to_s }
           end
         end
 
         def register_file(file, resolver)
-          register_name = file.sub(LIB_FOLDER, '').sub(CORE_FOLDER, '').tr('/', '.').sub(/_repository\z/, '')
+          register_name = file.sub(lib_folder, '').sub(CORE_FOLDER, '').tr('/', '.')
           register(register_name, memoize: true) { load! file, resolver }
         end
 
         def load!(path, resolver)
           load_file!(path)
 
-          unnecessary_part = extract_unnecessary_part(path)
-          right_path = path.sub(LIB_FOLDER, '').sub(unnecessary_part, '')
-
-          resolver.call(Object.const_get(Inflecto.camelize(right_path)))
+          right_path = path.sub(lib_folder, '').sub(CORE_FOLDER, '')
+          resolver.call(Object.const_get(Dry::Inflector.new.camelize(right_path)))
         end
 
         def load_file!(path)
-          require_relative "#{::Hanami.root}/#{path}"
-        end
-
-        def extract_unnecessary_part(path)
-          case path
-          when /repositories/
-            "#{CORE_FOLDER}repositories/"
-          when /entities/
-            "#{CORE_FOLDER}entities/"
-          else
-            CORE_FOLDER
-          end
+          require_relative "#{::Rails.root}/#{path}"
         end
       end
     end

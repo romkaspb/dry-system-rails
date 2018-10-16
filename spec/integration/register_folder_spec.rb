@@ -1,93 +1,71 @@
-RSpec.describe Dry::System::Hanami, 'register_folder!' do
-  context 'repositories folder' do
+RSpec.describe Dry::System::Rails, 'register_folder!' do
+  context 'schema folder' do
     before do
       class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
+        extend Dry::System::Rails::Resolver
 
         configure do |config|
           config.root = SPEC_ROOT.join('fixtures').realpath
         end
 
-        register_folder! 'test/repositories'
+        lib_folder! 'transactions'
+        register_folder! 'user/schema', resolver: ->(k) { k }
       end
 
       Test::Container.finalize!
     end
 
-    it { expect(Test::Container['repositories.user']).to be_an_instance_of(UserRepository) }
+    it { expect(Test::Container['user.schema.create']).to eq(User::Schema::Create) }
+    it { expect(Test::Container['user.schema.update']).to eq(User::Schema::Update) }
+
+    it { expect(Test::Container['user.schema.create']).to respond_to(:call) }
+    it { expect(Test::Container['user.schema.update']).to respond_to(:call) }
   end
 
-  context 'entities folder' do
+  context 'transactions folder with custom resolver' do
     before do
       class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
+        extend Dry::System::Rails::Resolver
 
         configure do |config|
           config.root = SPEC_ROOT.join('fixtures').realpath
         end
 
-        register_folder! 'test/entities'
+        lib_folder! 'transactions'
+        register_folder! 'user/transactions'
       end
 
       Test::Container.finalize!
     end
 
-    it { expect(Test::Container['entities.user']).to be_an_instance_of(User) }
-  end
+    it { expect(Test::Container['user.transactions.create']).to be_an_instance_of(User::Transactions::Create) }
+    it { expect(Test::Container['user.transactions.update']).to be_an_instance_of(User::Transactions::Update) }
 
-  context 'non hanami specific folder' do
-    before do
-      class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
-
-        configure do |config|
-          config.root = SPEC_ROOT.join('fixtures').realpath
-        end
-
-        register_folder! 'test/services'
-      end
-
-      Test::Container.finalize!
-    end
-
-    it { expect(Test::Container['services.user.create']).to be_an_instance_of(Services::User::Create) }
-  end
-
-  context 'folder with custom resolver' do
-    before do
-      class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
-
-        configure do |config|
-          config.root = SPEC_ROOT.join('fixtures').realpath
-        end
-
-        register_folder! 'test/workers', resolver: ->(k) { k }
-      end
-
-      Test::Container.finalize!
-    end
-
-    it { expect(Test::Container['workers.fetch_user']).to eq(Workers::FetchUser) }
+    it { expect(Test::Container['user.transactions.create']).to respond_to(:call) }
+    it { expect(Test::Container['user.transactions.update']).to respond_to(:call) }
   end
 
   context 'two diferent folders' do
     before do
       class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
+        extend Dry::System::Rails::Resolver
 
         configure do |config|
           config.root = SPEC_ROOT.join('fixtures').realpath
         end
 
-        register_folder! 'test/services'
-        register_folder! 'users/operations'
+        lib_folder! 'transactions'
+        register_folder! 'user/schema', resolver: ->(k) { k }
+        register_folder! 'user/transactions'
       end
 
       Test::Container.finalize!
     end
 
-    it { expect(Test::Container['services.user.create']).to be_an_instance_of(Services::User::Create) }
-    it { expect(Test::Container['users.operations.create']).to be_an_instance_of(Users::Operations::Create) }
+    it { expect(Test::Container['user.schema.create']).to eq(User::Schema::Create) }
+    it { expect(Test::Container['user.transactions.create']).to be_an_instance_of(User::Transactions::Create) }
+
+    it { expect(Test::Container['user.schema.create']).to respond_to(:call) }
+    it { expect(Test::Container['user.transactions.create']).to respond_to(:call) }
   end
 end

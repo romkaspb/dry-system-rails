@@ -1,17 +1,17 @@
 # coding: utf-8
 lib = File.expand_path("../lib", __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require "dry/system/hanami/version"
+require "dry/system/rails/version"
 
 Gem::Specification.new do |spec|
-  spec.name          = "dry-system-hanami"
-  spec.version       = Dry::System::Hanami::VERSION
-  spec.authors       = ["Anton Davydov"]
-  spec.email         = ["antondavydov.o@gmail.com"]
+  spec.name          = "dry-system-rails"
+  spec.version       = Dry::System::Rails::VERSION
+  spec.authors       = ["Roman Novoselov"]
+  spec.email         = ["rnovoselov93@gmail.com"]
 
-  spec.summary       = %q{Folder resolver for dry-system in hanami projects}
-  spec.description   = %q{Folder resolver for dry-system in hanami projects}
-  spec.homepage      = 'https://github.com/davydovanton/dry-system-hanami'
+  spec.summary       = %q{Folder resolver for dry-system in rails projects without pain}
+  spec.description   = %q{Folder resolver for dry-system in rails projects without pain}
+  spec.homepage      = 'https://github.com/romkaspb/dry-system-rails'
   spec.license       = "MIT"
 
   spec.files         = `git ls-files -z`.split("\x0").reject do |f|

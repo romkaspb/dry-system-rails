@@ -8,20 +8,14 @@ module TestNamespace
   end
 end
 
-class Hanami
+class Rails
   def self.root
     Pathname(SPEC_ROOT.join('fixtures'))
-  end
-
-  class Environment
-    def project_name
-      'test'
-    end
   end
 end
 
 require 'dry/system/container'
-require 'dry/system/hanami'
+require 'dry/system/rails'
 
 RSpec.configure do |config|
   config.disable_monkey_patching!
