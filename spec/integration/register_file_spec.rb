@@ -1,93 +1,65 @@
-RSpec.describe Dry::System::Hanami, 'register_file!' do
-  context 'repositories file' do
+RSpec.describe Dry::System::Rails, 'register_file!' do
+  context 'transaction file' do
     before do
       class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
+        extend Dry::System::Rails::Resolver
 
         configure do |config|
           config.root = SPEC_ROOT.join('fixtures').realpath
         end
 
-        register_file! 'test/repositories/user_repository'
+        lib_folder! 'transactions'
+        register_file! 'user/transactions/create'
       end
 
       Test::Container.finalize!
     end
 
-    it { expect(Test::Container['repositories.user']).to be_an_instance_of(UserRepository) }
+    it { expect(Test::Container['user.transactions.create']).to be_instance_of(User::Transactions::Create) }
+    it { expect(Test::Container['user.transactions.create']).to respond_to(:call) }
   end
 
-  context 'entities file' do
+  context 'schema file with custom resolver' do
     before do
       class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
+        extend Dry::System::Rails::Resolver
 
         configure do |config|
           config.root = SPEC_ROOT.join('fixtures').realpath
         end
 
-        register_file! 'test/entities/user'
+        lib_folder! 'transactions'
+        register_file! 'user/schema/create', resolver: ->(k) { k }
       end
 
       Test::Container.finalize!
     end
 
-    it { expect(Test::Container['entities.user']).to be_an_instance_of(User) }
-  end
-
-  context 'non hanami specific file' do
-    before do
-      class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
-
-        configure do |config|
-          config.root = SPEC_ROOT.join('fixtures').realpath
-        end
-
-        register_file! 'test/services/user/create'
-      end
-
-      Test::Container.finalize!
-    end
-
-    it { expect(Test::Container['services.user.create']).to be_an_instance_of(Services::User::Create) }
-  end
-
-  context 'file with custom resolver' do
-    before do
-      class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
-
-        configure do |config|
-          config.root = SPEC_ROOT.join('fixtures').realpath
-        end
-
-        register_file! 'test/workers/fetch_user', resolver: ->(k) { k }
-      end
-
-      Test::Container.finalize!
-    end
-
-    it { expect(Test::Container['workers.fetch_user']).to eq(Workers::FetchUser) }
+    it { expect(Test::Container['user.schema.create']).to eq(User::Schema::Create) }
+    it { expect(Test::Container['user.schema.create']).to respond_to(:call) }
   end
 
   context 'two diferent files' do
     before do
       class Test::Container < Dry::System::Container
-        extend Dry::System::Hanami::Resolver
+        extend Dry::System::Rails::Resolver
 
         configure do |config|
           config.root = SPEC_ROOT.join('fixtures').realpath
         end
-
-        register_file! 'test/services/user/create'
-        register_file! 'users/operations/create'
+        
+        lib_folder! 'transactions'
+        register_file! 'user/schema/create', resolver: ->(k) { k }
+        register_file! 'user/transactions/create'
       end
 
       Test::Container.finalize!
     end
 
-    it { expect(Test::Container['services.user.create']).to be_an_instance_of(Services::User::Create) }
-    it { expect(Test::Container['users.operations.create']).to be_an_instance_of(Users::Operations::Create) }
+    it { expect(Test::Container['user.schema.create']).to eq(User::Schema::Create) }
+    it { expect(Test::Container['user.transactions.create']).to be_instance_of(User::Transactions::Create) }
+
+    it { expect(Test::Container['user.schema.create']).to respond_to(:call) }
+    it { expect(Test::Container['user.transactions.create']).to respond_to(:call) }
   end
 end

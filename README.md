@@ -1,5 +1,5 @@
-# Dry::System::Hanami
-Some magic stuff for autoload folders to dry-system in hanami projects.
+# Dry::System::Rails
+Some magic stuff for autoload folders to dry-system in rails projects without pain.
 
 ## Installation
 
